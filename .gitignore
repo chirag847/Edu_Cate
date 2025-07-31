@@ -91,7 +91,7 @@ typings/
 
 # Gatsby files
 .cache/
-public
+# Note: Gatsby's public folder is ignored, but React's public folder should be tracked
 
 # Storybook build outputs
 .out
