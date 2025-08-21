@@ -8,16 +8,10 @@ import {
   Avatar,
   Button,
   Chip,
-  Divider,
   Stack,
   Paper,
   Tabs,
   Tab,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -28,24 +22,25 @@ import {
   Select,
   MenuItem,
   Alert,
-  CircularProgress
+  CircularProgress,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import {
   Edit as EditIcon,
   School as SchoolIcon,
   Star as StarIcon,
-  TrendingUp as TrendingIcon,
   CloudUpload as UploadIcon,
   Bookmark as BookmarkIcon,
   Visibility as ViewIcon,
   Download as DownloadIcon,
   ThumbUp as ThumbUpIcon,
-  CalendarToday as CalendarIcon,
   Email as EmailIcon,
   Person as PersonIcon
 } from '@mui/icons-material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import VideoBackground from '../common/VideoBackground';
 import api from '../../utils/api';
 import { User, Resource, STREAMS, YEARS } from '../../types';
 
@@ -65,11 +60,14 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const { id: userId } = useParams();
   const { user: currentUser, updateUser } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [userResources, setUserResources] = useState<Resource[]>([]);
   const [bookmarkedResources, setBookmarkedResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState<string>('');
   const [tabValue, setTabValue] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
@@ -143,47 +141,173 @@ const Profile: React.FC = () => {
   const handleEditProfile = async () => {
     try {
       setEditLoading(true);
-      const response = await api.put('/users/me', editFormData);
+      setError(''); // Clear any previous errors
+      setSuccess(''); // Clear any previous success messages
+      
+      console.log('Sending profile update with data:', editFormData);
+      
+      const response = await api.put('/auth/profile', editFormData);
+      
+      console.log('Profile update response:', response.data);
       
       if (response.data.user) {
+        // Update both profile user and current user context
         setProfileUser(response.data.user);
         updateUser(response.data.user);
-        setEditDialogOpen(false);
+        
+        // Update form data with the response to ensure consistency
+        setEditFormData({
+          firstName: response.data.user.firstName || '',
+          lastName: response.data.user.lastName || '',
+          bio: response.data.user.bio || '',
+          college: response.data.user.college || '',
+          stream: response.data.user.stream || '',
+          year: response.data.user.year || ''
+        });
+        
+        setSuccess('Profile updated successfully!');
+        
+        // Close dialog after a short delay to show success message
+        setTimeout(() => {
+          setEditDialogOpen(false);
+          setSuccess('');
+        }, 1500);
+        
+        console.log('Profile updated successfully:', response.data.user);
+      } else {
+        setError('Failed to update profile - invalid response');
       }
     } catch (err: any) {
       console.error('Update profile error:', err);
+      setError(err.response?.data?.message || 'Failed to update profile');
     } finally {
       setEditLoading(false);
     }
   };
 
+  const openEditDialog = () => {
+    // Initialize form data with current user data
+    if (profileUser) {
+      setEditFormData({
+        firstName: profileUser.firstName || '',
+        lastName: profileUser.lastName || '',
+        bio: profileUser.bio || '',
+        college: profileUser.college || '',
+        stream: profileUser.stream || '',
+        year: profileUser.year || ''
+      });
+    }
+    setError('');
+    setSuccess('');
+    setEditDialogOpen(true);
+  };
+
   const ResourceCard = ({ resource }: { resource: Resource }) => (
-    <Card sx={{ mb: 2 }}>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+    <Card sx={{ 
+      mb: 2,
+      background: 'rgba(255, 255, 255, 0.05)',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+      borderRadius: '16px',
+      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      cursor: 'pointer',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+      '&:hover': {
+        background: 'rgba(255, 255, 255, 0.12)',
+        transform: 'translateY(-6px) scale(1.02)',
+        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(139, 92, 246, 0.4)',
+        border: '1px solid rgba(139, 92, 246, 0.5)',
+      }
+    }}>
+      <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between', 
+          alignItems: { xs: 'flex-start', sm: 'flex-start' }, 
+          mb: 2,
+          gap: { xs: 1, sm: 0 }
+        }}>
+          <Typography variant="h6" component="div" sx={{ 
+            flexGrow: 1,
+            color: 'white',
+            fontWeight: 600,
+            fontSize: { xs: '1rem', sm: '1.25rem' },
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            lineHeight: 1.3,
+            mb: { xs: 1, sm: 0 }
+          }}>
             {resource.title}
           </Typography>
-          <Chip label={resource.type} size="small" color="primary" />
+          <Chip 
+            label={resource.type} 
+            size="small" 
+            sx={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              fontWeight: 500,
+              border: 'none',
+              fontSize: { xs: '0.7rem', sm: '0.75rem' },
+              alignSelf: { xs: 'flex-start', sm: 'center' }
+            }}
+          />
         </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          {resource.description.substring(0, 100)}...
+        <Typography variant="body2" sx={{ 
+          mb: 2, 
+          color: 'rgba(255, 255, 255, 0.8)', 
+          lineHeight: 1.6,
+          fontSize: { xs: '0.8rem', sm: '0.875rem' }
+        }}>
+          {resource.description.substring(0, 150)}...
         </Typography>
-        <Stack direction="row" sx={{ mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <ViewIcon fontSize="small" sx={{ mr: 0.5 }} />
-            <Typography variant="caption">{resource.views}</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <ThumbUpIcon fontSize="small" sx={{ mr: 0.5 }} />
-            <Typography variant="caption">{resource.votes.score}</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <DownloadIcon fontSize="small" sx={{ mr: 0.5 }} />
-            <Typography variant="caption">{resource.downloads}</Typography>
+        <Stack 
+          direction={{ xs: 'column', sm: 'row' }} 
+          spacing={{ xs: 1, sm: 3 }} 
+          sx={{ 
+            mb: 2,
+            alignItems: { xs: 'flex-start', sm: 'center' }
+          }}
+        >
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            gap: { xs: 2, sm: 3 }
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <ViewIcon fontSize="small" sx={{ mr: 0.5, color: 'rgba(255, 255, 255, 0.6)' }} />
+              <Typography variant="caption" sx={{ 
+                color: 'rgba(255, 255, 255, 0.8)',
+                fontSize: { xs: '0.7rem', sm: '0.75rem' }
+              }}>
+                {resource.views}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <ThumbUpIcon fontSize="small" sx={{ mr: 0.5, color: 'rgba(255, 255, 255, 0.6)' }} />
+              <Typography variant="caption" sx={{ 
+                color: 'rgba(255, 255, 255, 0.8)',
+                fontSize: { xs: '0.7rem', sm: '0.75rem' }
+              }}>
+                {resource.votes.score}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <DownloadIcon fontSize="small" sx={{ mr: 0.5, color: 'rgba(255, 255, 255, 0.6)' }} />
+              <Typography variant="caption" sx={{ 
+                color: 'rgba(255, 255, 255, 0.8)',
+                fontSize: { xs: '0.7rem', sm: '0.75rem' }
+              }}>
+                {resource.downloads}
+              </Typography>
+            </Box>
           </Box>
         </Stack>
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" sx={{ 
+          color: 'rgba(255, 255, 255, 0.5)',
+          fontSize: { xs: '0.7rem', sm: '0.75rem' }
+        }}>
           {new Date(resource.createdAt).toLocaleDateString()}
         </Typography>
       </CardContent>
@@ -192,8 +316,16 @@ const Profile: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+      <Container maxWidth="lg" sx={{ 
+        mt: { xs: 2, sm: 4 }, 
+        mb: { xs: 2, sm: 4 },
+        px: { xs: 1, sm: 2 }
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          py: { xs: 4, sm: 8 }
+        }}>
           <CircularProgress />
         </Box>
       </Container>
@@ -202,8 +334,17 @@ const Profile: React.FC = () => {
 
   if (!profileUser) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Alert severity="error">
+      <Container maxWidth="lg" sx={{ 
+        mt: { xs: 2, sm: 4 }, 
+        mb: { xs: 2, sm: 4 },
+        px: { xs: 1, sm: 2 }
+      }}>
+        <Alert severity="error" sx={{
+          borderRadius: '16px',
+          background: 'rgba(211, 47, 47, 0.1)',
+          border: '1px solid rgba(211, 47, 47, 0.3)',
+          color: 'white'
+        }}>
           User not found
         </Alert>
       </Container>
@@ -218,83 +359,309 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
+    <VideoBackground overlay={false}>
+      <Box sx={{ 
+        minHeight: '100vh',
+        pt: { xs: 10, sm: 12 },
+        pb: { xs: 2, sm: 4 },
+        px: { xs: 1, sm: 0 }
+      }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
+          {error && (
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 3,
+                background: 'rgba(211, 47, 47, 0.1)',
+                border: '1px solid rgba(211, 47, 47, 0.3)',
+                borderRadius: '16px',
+                color: 'white'
+              }}
+            >
+              {error}
+            </Alert>
+          )}
 
       {/* Profile Header */}
-      <Paper sx={{ p: 4, mb: 4 }}>
-        <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-          <Box>
-            <Avatar 
-              sx={{ 
-                width: 120, 
-                height: 120, 
-                fontSize: '3rem',
-                bgcolor: 'primary.main'
-              }}
-              src={profileUser.profilePicture}
-            >
-              {profileUser.firstName[0]}{profileUser.lastName[0]}
-            </Avatar>
-          </Box>
-          <Box sx={{ flexGrow: 1 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <Box>
-                <Typography variant="h4" gutterBottom>
-                  {profileUser.firstName} {profileUser.lastName}
-                  {profileUser.isVerified && (
-                    <Chip 
+          <Paper sx={{ 
+            p: { xs: 2, sm: 3, md: 4 }, 
+            mb: 4,
+            background: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '20px',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': {
+              background: 'rgba(255, 255, 255, 0.08)',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(139, 92, 246, 0.2)',
+            },
+          }}>
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 2, sm: 3 }, 
+              alignItems: { xs: 'center', sm: 'flex-start' },
+              textAlign: { xs: 'center', sm: 'left' }
+            }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Avatar 
+                  sx={{ 
+                    width: { xs: 80, sm: 100, md: 120 }, 
+                    height: { xs: 80, sm: 100, md: 120 }, 
+                    fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    border: '3px solid rgba(255, 255, 255, 0.2)'
+                  }}
+                  src={profileUser.profilePicture}
+                >
+                  {profileUser.firstName[0]}{profileUser.lastName[0]}
+                </Avatar>
+              </Box>
+              <Box sx={{ flexGrow: 1, width: { xs: '100%', sm: 'auto' } }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  justifyContent: { xs: 'center', sm: 'space-between' }, 
+                  alignItems: { xs: 'center', sm: 'flex-start' },
+                  gap: { xs: 2, sm: 0 }
+                }}>
+                  <Box>
+                    <Typography variant="h4" gutterBottom sx={{
+                      fontWeight: 700,
+                      fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      color: 'transparent',
+                    }}>
+                      {profileUser.firstName} {profileUser.lastName}
+                      {profileUser.isVerified && (
+                        <Chip 
                       icon={<StarIcon />} 
                       label="Verified" 
                       color="primary" 
                       size="small" 
-                      sx={{ ml: 2 }}
+                      sx={{ ml: { xs: 1, sm: 2 }, mt: { xs: 1, sm: 0 } }}
                     />
                   )}
                 </Typography>
-                <Stack direction="row" sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <SchoolIcon fontSize="small" sx={{ mr: 0.5 }} />
-                    <Typography variant="body2">{profileUser.stream}</Typography>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 4 }} sx={{ mb: 3 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    justifyContent: { xs: 'center', sm: 'flex-start' },
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    p: { xs: 1, sm: 1.5 },
+                    minWidth: { sm: '200px' },
+                    width: { xs: '100%', sm: 'auto' },
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 12px rgba(139, 92, 246, 0.2)',
+                    },
+                  }}>
+                    <SchoolIcon fontSize="small" sx={{ mr: 1.5, color: 'rgba(139, 92, 246, 0.8)' }} />
+                    <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.7rem' }}>
+                        Stream
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: 600 }}>
+                        {profileUser.stream}
+                      </Typography>
+                    </Box>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <PersonIcon fontSize="small" sx={{ mr: 0.5 }} />
-                    <Typography variant="body2">{profileUser.year}</Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    justifyContent: { xs: 'center', sm: 'flex-start' },
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    p: { xs: 1, sm: 1.5 },
+                    minWidth: { sm: '150px' },
+                    width: { xs: '100%', sm: 'auto' },
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 12px rgba(139, 92, 246, 0.2)',
+                    },
+                  }}>
+                    <PersonIcon fontSize="small" sx={{ mr: 1.5, color: 'rgba(139, 92, 246, 0.8)' }} />
+                    <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.7rem' }}>
+                        Year
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: 600 }}>
+                        {profileUser.year}
+                      </Typography>
+                    </Box>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <EmailIcon fontSize="small" sx={{ mr: 0.5 }} />
-                    <Typography variant="body2">{profileUser.college}</Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center',
+                    justifyContent: { xs: 'center', sm: 'flex-start' },
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    p: { xs: 1, sm: 1.5 },
+                    minWidth: { sm: '220px' },
+                    width: { xs: '100%', sm: 'auto' },
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 12px rgba(139, 92, 246, 0.2)',
+                    },
+                  }}>
+                    <EmailIcon fontSize="small" sx={{ mr: 1.5, color: 'rgba(139, 92, 246, 0.8)' }} />
+                    <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.7rem' }}>
+                        College
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: 'rgba(255, 255, 255, 0.9)', 
+                          fontWeight: 600,
+                          wordBreak: { xs: 'break-word', sm: 'normal' },
+                          fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                        }}
+                      >
+                        {profileUser.college}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Stack>
-                <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    mb: 2, 
+                    color: 'rgba(255, 255, 255, 0.7)',
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    lineHeight: 1.6
+                  }}
+                >
                   {profileUser.bio || 'No bio available'}
                 </Typography>
-                <Stack direction="row">
-                  <Box>
-                    <Typography variant="h6" color="primary">
+                <Stack 
+                  direction={{ xs: 'column', sm: 'row' }} 
+                  spacing={{ xs: 1, sm: 3 }} 
+                  sx={{ 
+                    flexWrap: 'wrap', 
+                    gap: { xs: 1, sm: 2 },
+                    justifyContent: { xs: 'center', sm: 'flex-start' }
+                  }}
+                >
+                  <Box sx={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '16px',
+                    p: { xs: 1.5, sm: 2.5 },
+                    textAlign: 'center',
+                    minWidth: { xs: '80px', sm: '100px' },
+                    width: { xs: '100%', sm: 'auto' },
+                    flex: { xs: '1', sm: 'none' },
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      transform: 'translateY(-4px) scale(1.02)',
+                      boxShadow: '0 12px 24px rgba(139, 92, 246, 0.3)',
+                      border: '1px solid rgba(139, 92, 246, 0.4)',
+                    },
+                  }}>
+                    <Typography variant="h5" sx={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      color: 'transparent',
+                      fontWeight: 700,
+                      mb: 0.5,
+                      fontSize: { xs: '1.2rem', sm: '1.5rem' }
+                    }}>
                       {stats.reputation}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)', 
+                      fontWeight: 500,
+                      fontSize: { xs: '0.7rem', sm: '0.75rem' }
+                    }}>
                       Reputation
                     </Typography>
                   </Box>
-                  <Box>
-                    <Typography variant="h6" color="primary">
+                  <Box sx={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '16px',
+                    p: { xs: 1.5, sm: 2.5 },
+                    textAlign: 'center',
+                    minWidth: { xs: '80px', sm: '100px' },
+                    width: { xs: '100%', sm: 'auto' },
+                    flex: { xs: '1', sm: 'none' },
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      transform: 'translateY(-4px) scale(1.02)',
+                      boxShadow: '0 12px 24px rgba(139, 92, 246, 0.3)',
+                      border: '1px solid rgba(139, 92, 246, 0.4)',
+                    },
+                  }}>
+                    <Typography variant="h5" sx={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      color: 'transparent',
+                      fontWeight: 700,
+                      mb: 0.5,
+                      fontSize: { xs: '1.2rem', sm: '1.5rem' }
+                    }}>
                       {stats.totalUploads}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)', 
+                      fontWeight: 500,
+                      fontSize: { xs: '0.7rem', sm: '0.75rem' }
+                    }}>
                       Resources
                     </Typography>
                   </Box>
-                  <Box>
-                    <Typography variant="h6" color="primary">
+                  <Box sx={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '16px',
+                    p: { xs: 1.5, sm: 2.5 },
+                    textAlign: 'center',
+                    minWidth: { xs: '80px', sm: '100px' },
+                    width: { xs: '100%', sm: 'auto' },
+                    flex: { xs: '1', sm: 'none' },
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': {
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      transform: 'translateY(-4px) scale(1.02)',
+                      boxShadow: '0 12px 24px rgba(139, 92, 246, 0.3)',
+                      border: '1px solid rgba(139, 92, 246, 0.4)',
+                    },
+                  }}>
+                    <Typography variant="h5" sx={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      backgroundClip: 'text',
+                      WebkitBackgroundClip: 'text',
+                      color: 'transparent',
+                      fontWeight: 700,
+                      mb: 0.5,
+                      fontSize: { xs: '1.2rem', sm: '1.5rem' }
+                    }}>
                       {stats.totalViews}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography variant="caption" sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)', 
+                      fontWeight: 500,
+                      fontSize: { xs: '0.7rem', sm: '0.75rem' }
+                    }}>
                       Total Views
                     </Typography>
                   </Box>
@@ -304,7 +671,27 @@ const Profile: React.FC = () => {
                 <Button
                   variant="outlined"
                   startIcon={<EditIcon />}
-                  onClick={() => setEditDialogOpen(true)}
+                  onClick={openEditDialog}
+                  sx={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '12px',
+                    color: 'white',
+                    fontWeight: 600,
+                    px: { xs: 2, sm: 3 },
+                    py: { xs: 1, sm: 1.5 },
+                    fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                    alignSelf: { xs: 'center', sm: 'flex-start' },
+                    width: { xs: '100%', sm: 'auto' },
+                    maxWidth: { xs: '200px', sm: 'none' },
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      background: 'rgba(139, 92, 246, 0.1)',
+                      borderColor: 'rgba(139, 92, 246, 0.5)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)',
+                    }
+                  }}
                 >
                   Edit Profile
                 </Button>
@@ -315,11 +702,40 @@ const Profile: React.FC = () => {
       </Paper>
 
       {/* Tabs */}
-      <Paper sx={{ mb: 3 }}>
+      <Paper sx={{ 
+        mb: 3,
+        background: 'rgba(255, 255, 255, 0.05)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRadius: '16px',
+        overflow: 'hidden',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          background: 'rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 8px 20px rgba(139, 92, 246, 0.1)',
+        },
+      }}>
         <Tabs 
           value={tabValue} 
           onChange={(_, newValue) => setTabValue(newValue)}
-          variant="fullWidth"
+          variant={isMobile ? "fullWidth" : "standard"}
+          centered={!isMobile}
+          sx={{
+            '& .MuiTab-root': {
+              color: 'rgba(255, 255, 255, 0.7)',
+              fontWeight: 600,
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              minHeight: { xs: 56, sm: 48 },
+              '&.Mui-selected': {
+                color: 'white',
+                background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
+              }
+            },
+            '& .MuiTabs-indicator': {
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              height: '3px',
+              borderRadius: '3px'
+            }
+          }}
         >
           <Tab 
             icon={<UploadIcon />} 
@@ -347,16 +763,26 @@ const Profile: React.FC = () => {
             ))}
           </Box>
         ) : (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <UploadIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-            <Typography variant="h6" gutterBottom>
+          <Box sx={{ textAlign: 'center', py: { xs: 4, sm: 8 } }}>
+            <UploadIcon sx={{ 
+              fontSize: { xs: 48, sm: 64 }, 
+              color: 'text.secondary', 
+              mb: 2 
+            }} />
+            <Typography variant="h6" gutterBottom sx={{ 
+              fontSize: { xs: '1.1rem', sm: '1.25rem' }
+            }}>
               No resources uploaded yet
             </Typography>
             {isOwnProfile && (
               <Button
                 variant="contained"
                 onClick={() => navigate('/upload')}
-                sx={{ mt: 2 }}
+                sx={{ 
+                  mt: 2,
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  px: { xs: 2, sm: 3 }
+                }}
               >
                 Upload Your First Resource
               </Button>
@@ -376,15 +802,25 @@ const Profile: React.FC = () => {
               ))}
             </Box>
           ) : (
-            <Box sx={{ textAlign: 'center', py: 8 }}>
-              <BookmarkIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-              <Typography variant="h6" gutterBottom>
+            <Box sx={{ textAlign: 'center', py: { xs: 4, sm: 8 } }}>
+              <BookmarkIcon sx={{ 
+                fontSize: { xs: 48, sm: 64 }, 
+                color: 'text.secondary', 
+                mb: 2 
+              }} />
+              <Typography variant="h6" gutterBottom sx={{ 
+                fontSize: { xs: '1.1rem', sm: '1.25rem' }
+              }}>
                 No bookmarked resources yet
               </Typography>
               <Button
                 variant="contained"
                 onClick={() => navigate('/resources')}
-                sx={{ mt: 2 }}
+                sx={{ 
+                  mt: 2,
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
+                  px: { xs: 2, sm: 3 }
+                }}
               >
                 Browse Resources
               </Button>
@@ -399,92 +835,318 @@ const Profile: React.FC = () => {
         onClose={() => setEditDialogOpen(false)}
         maxWidth="sm"
         fullWidth
+        fullScreen={isMobile}
+        PaperProps={{
+          sx: {
+            background: 'rgba(20, 20, 20, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: { xs: 0, sm: '20px' },
+            color: 'white',
+            margin: { xs: 0, sm: 2 },
+            maxHeight: { xs: '100vh', sm: '90vh' }
+          }
+        }}
       >
-        <DialogTitle>Edit Profile</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 1 }}>
-            <Box>
-              <TextField
-                fullWidth
-                label="First Name"
-                value={editFormData.firstName}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, firstName: e.target.value }))}
-              />
-            </Box>
-            <Box>
-              <TextField
-                fullWidth
-                label="Last Name"
-                value={editFormData.lastName}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, lastName: e.target.value }))}
-              />
-            </Box>
-            <Box>
-              <TextField
-                fullWidth
-                label="Bio"
-                multiline
-                rows={3}
-                value={editFormData.bio}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, bio: e.target.value }))}
-              />
-            </Box>
-            <Box>
-              <TextField
-                fullWidth
-                label="College/University"
-                value={editFormData.college}
-                onChange={(e) => setEditFormData(prev => ({ ...prev, college: e.target.value }))}
-              />
-            </Box>
-            <Box>
-              <FormControl fullWidth>
-                <InputLabel>Stream</InputLabel>
-                <Select
-                  value={editFormData.stream}
-                  label="Stream"
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, stream: e.target.value }))}
-                >
-                  {STREAMS.map((stream) => (
-                    <MenuItem key={stream} value={stream}>
-                      {stream}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-            <Box>
-              <FormControl fullWidth>
-                <InputLabel>Year</InputLabel>
-                <Select
-                  value={editFormData.year}
-                  label="Year"
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, year: e.target.value }))}
-                >
-                  {YEARS.map((year) => (
-                    <MenuItem key={year} value={year}>
-                      {year}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
+        <DialogTitle sx={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          backgroundClip: 'text',
+          WebkitBackgroundClip: 'text',
+          color: 'transparent',
+          fontWeight: 700,
+          fontSize: { xs: '1.2rem', sm: '1.5rem' },
+          py: { xs: 2, sm: 3 }
+        }}>
+          Edit Profile
+        </DialogTitle>
+        <DialogContent sx={{ 
+          px: { xs: 2, sm: 3 },
+          pb: { xs: 2, sm: 3 }
+        }}>
+          {error && (
+            <Alert 
+              severity="error" 
+              sx={{ 
+                mb: 2,
+                background: 'rgba(211, 47, 47, 0.1)',
+                border: '1px solid rgba(211, 47, 47, 0.3)',
+                borderRadius: '12px',
+                color: 'white'
+              }}
+            >
+              {error}
+            </Alert>
+          )}
+          {success && (
+            <Alert 
+              severity="success" 
+              sx={{ 
+                mb: 2,
+                background: 'rgba(76, 175, 80, 0.1)',
+                border: '1px solid rgba(76, 175, 80, 0.3)',
+                borderRadius: '12px',
+                color: 'white'
+              }}
+            >
+              {success}
+            </Alert>
+          )}
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <TextField
+              fullWidth
+              label="First Name"
+              value={editFormData.firstName}
+              onChange={(e) => setEditFormData(prev => ({ ...prev, firstName: e.target.value }))}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(139, 92, 246, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#8b5cf6',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&.Mui-focused': {
+                    color: '#8b5cf6',
+                  },
+                },
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Last Name"
+              value={editFormData.lastName}
+              onChange={(e) => setEditFormData(prev => ({ ...prev, lastName: e.target.value }))}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(139, 92, 246, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#8b5cf6',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&.Mui-focused': {
+                    color: '#8b5cf6',
+                  },
+                },
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Bio"
+              multiline
+              rows={3}
+              value={editFormData.bio}
+              onChange={(e) => setEditFormData(prev => ({ ...prev, bio: e.target.value }))}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(139, 92, 246, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#8b5cf6',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&.Mui-focused': {
+                    color: '#8b5cf6',
+                  },
+                },
+              }}
+            />
+            <TextField
+              fullWidth
+              label="College/University"
+              value={editFormData.college}
+              onChange={(e) => setEditFormData(prev => ({ ...prev, college: e.target.value }))}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(139, 92, 246, 0.5)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: '#8b5cf6',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&.Mui-focused': {
+                    color: '#8b5cf6',
+                  },
+                },
+              }}
+            />
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: 'rgba(255, 255, 255, 0.7)', '&.Mui-focused': { color: '#8b5cf6' } }}>
+                Stream
+              </InputLabel>
+              <Select
+                value={editFormData.stream}
+                label="Stream"
+                onChange={(e) => setEditFormData(prev => ({ ...prev, stream: e.target.value }))}
+                sx={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(139, 92, 246, 0.5)',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#8b5cf6',
+                  },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      background: 'rgba(20, 20, 20, 0.95)',
+                      backdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      '& .MuiMenuItem-root': {
+                        color: 'white',
+                        '&:hover': {
+                          background: 'rgba(139, 92, 246, 0.2)',
+                        },
+                      },
+                    },
+                  },
+                }}
+              >
+                {STREAMS.map((stream) => (
+                  <MenuItem key={stream} value={stream}>
+                    {stream}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel sx={{ color: 'rgba(255, 255, 255, 0.7)', '&.Mui-focused': { color: '#8b5cf6' } }}>
+                Year
+              </InputLabel>
+              <Select
+                value={editFormData.year}
+                label="Year"
+                onChange={(e) => setEditFormData(prev => ({ ...prev, year: e.target.value }))}
+                sx={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(139, 92, 246, 0.5)',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#8b5cf6',
+                  },
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      background: 'rgba(20, 20, 20, 0.95)',
+                      backdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      '& .MuiMenuItem-root': {
+                        color: 'white',
+                        '&:hover': {
+                          background: 'rgba(139, 92, 246, 0.2)',
+                        },
+                      },
+                    },
+                  },
+                }}
+              >
+                {YEARS.map((year) => (
+                  <MenuItem key={year} value={year}>
+                    {year}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>
+        <DialogActions sx={{ 
+          p: { xs: 2, sm: 3 }, 
+          gap: { xs: 1, sm: 2 },
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: 'stretch'
+        }}>
+          <Button 
+            onClick={() => setEditDialogOpen(false)}
+            sx={{
+              color: 'rgba(255, 255, 255, 0.7)',
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+              order: { xs: 2, sm: 1 },
+              '&:hover': {
+                borderColor: 'rgba(255, 255, 255, 0.4)',
+              }
+            }}
+          >
             Cancel
           </Button>
           <Button 
             onClick={handleEditProfile}
             variant="contained"
             disabled={editLoading}
+            sx={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: 'none',
+              borderRadius: '12px',
+              color: 'white',
+              fontWeight: 600,
+              px: 3,
+              order: { xs: 1, sm: 2 },
+              '&:hover': {
+                background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+                transform: 'translateY(-2px)',
+                boxShadow: '0 10px 20px rgba(139, 92, 246, 0.3)',
+              },
+              '&:disabled': {
+                background: 'rgba(255, 255, 255, 0.1)',
+                color: 'rgba(255, 255, 255, 0.5)',
+              }
+            }}
           >
-            {editLoading ? <CircularProgress size={24} /> : 'Save Changes'}
+            {editLoading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Save Changes'}
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+        </Container>
+      </Box>
+    </VideoBackground>
   );
 };
 

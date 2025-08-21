@@ -234,7 +234,27 @@ router.put('/profile', auth, [
     .optional()
     .trim()
     .isLength({ min: 1 })
-    .withMessage('College name cannot be empty')
+    .withMessage('College name cannot be empty'),
+  body('stream')
+    .optional()
+    .isIn([
+      'Computer Science',
+      'Information Technology',
+      'Electronics & Communication',
+      'Electrical Engineering',
+      'Mechanical Engineering',
+      'Civil Engineering',
+      'Chemical Engineering',
+      'Aerospace Engineering',
+      'Biomedical Engineering',
+      'Industrial Engineering',
+      'Other'
+    ])
+    .withMessage('Invalid stream selected'),
+  body('year')
+    .optional()
+    .isIn(['1st Year', '2nd Year', '3rd Year', '4th Year', 'Graduate'])
+    .withMessage('Invalid year selected')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -245,7 +265,7 @@ router.put('/profile', auth, [
       });
     }
 
-    const { firstName, lastName, bio, college } = req.body;
+    const { firstName, lastName, bio, college, stream, year } = req.body;
     
     const user = await User.findById(req.user.userId);
     if (!user) {
@@ -260,6 +280,8 @@ router.put('/profile', auth, [
     if (lastName !== undefined) user.lastName = lastName;
     if (bio !== undefined) user.bio = bio;
     if (college !== undefined) user.college = college;
+    if (stream !== undefined) user.stream = stream;
+    if (year !== undefined) user.year = year;
 
     await user.save();
 

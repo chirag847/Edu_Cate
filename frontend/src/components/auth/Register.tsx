@@ -17,6 +17,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import VideoBackground from '../common/VideoBackground';
 import { RegisterData, STREAMS, YEARS } from '../../types';
 
 const schema = yup.object({
@@ -63,6 +64,20 @@ const Register: React.FC = () => {
   const { register: registerUser } = useAuth();
   const navigate = useNavigate();
 
+  // Common styling for text fields
+  const textFieldStyle = {
+    '& .MuiOutlinedInput-root': {
+      background: 'rgba(255, 255, 255, 0.05)',
+      borderRadius: '12px',
+      color: 'white',
+      '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
+      '&:hover fieldset': { borderColor: 'rgba(139, 92, 246, 0.4)' },
+      '&.Mui-focused fieldset': { borderColor: 'rgba(139, 92, 246, 0.6)' },
+    },
+    '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+    '& .MuiFormHelperText-root': { color: 'rgba(255, 255, 255, 0.6)' },
+  };
+
   const {
     register,
     handleSubmit,
@@ -101,30 +116,59 @@ const Register: React.FC = () => {
   };
 
   return (
-    <Container component="main" maxWidth="md">
-      <Box
-        sx={{
-          marginTop: 4,
-          marginBottom: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper
-          elevation={3}
+    <VideoBackground overlay={false}>
+      <Container component="main" maxWidth="md">
+        <Box
           sx={{
-            padding: 4,
+            marginTop: 4,
+            marginBottom: 4,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            width: '100%',
+            minHeight: '100vh',
+            pt: 12,
           }}
         >
-          <Typography component="h1" variant="h4" gutterBottom>
+          <Paper
+            elevation={0}
+            sx={{
+              padding: 4,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              width: '100%',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '24px',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                background: 'rgba(255, 255, 255, 0.08)',
+                transform: 'translateY(-2px)',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+              },
+            }}
+          >
+          <Typography 
+            component="h1" 
+            variant="h4" 
+            gutterBottom
+            sx={{ 
+              color: 'white',
+              fontWeight: 700,
+              textShadow: '1px 1px 2px rgba(0,0,0,0.8)' 
+            }}
+          >
             Join Educate
           </Typography>
-          <Typography variant="body2" color="textSecondary" align="center" sx={{ mb: 3 }}>
+          <Typography 
+            variant="body2" 
+            align="center" 
+            sx={{ 
+              mb: 3,
+              color: 'rgba(255, 255, 255, 0.8)',
+              textShadow: '1px 1px 2px rgba(0,0,0,0.8)' 
+            }}
+          >
             Create your account to start sharing and discovering engineering resources
           </Typography>
 
@@ -147,6 +191,7 @@ const Register: React.FC = () => {
                   autoComplete="given-name"
                   error={!!errors.firstName}
                   helperText={errors.firstName?.message}
+                  sx={textFieldStyle}
                 />
                 <TextField
                   {...register('lastName')}
@@ -158,6 +203,7 @@ const Register: React.FC = () => {
                   autoComplete="family-name"
                   error={!!errors.lastName}
                   helperText={errors.lastName?.message}
+                  sx={textFieldStyle}
                 />
               </Box>
               <TextField
@@ -170,6 +216,7 @@ const Register: React.FC = () => {
                 autoComplete="username"
                 error={!!errors.username}
                 helperText={errors.username?.message}
+                sx={textFieldStyle}
               />
               <TextField
                 {...register('email')}
@@ -181,6 +228,7 @@ const Register: React.FC = () => {
                 autoComplete="email"
                 error={!!errors.email}
                 helperText={errors.email?.message}
+                sx={textFieldStyle}
               />
               <TextField
                 {...register('password')}
@@ -193,6 +241,7 @@ const Register: React.FC = () => {
                 autoComplete="new-password"
                 error={!!errors.password}
                 helperText={errors.password?.message}
+                sx={textFieldStyle}
               />
               <TextField
                 {...register('college')}
@@ -203,6 +252,7 @@ const Register: React.FC = () => {
                 name="college"
                 error={!!errors.college}
                 helperText={errors.college?.message}
+                sx={textFieldStyle}
               />
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <TextField
@@ -217,6 +267,7 @@ const Register: React.FC = () => {
                   onChange={(e) => setValue('stream', e.target.value)}
                   error={!!errors.stream}
                   helperText={errors.stream?.message}
+                  sx={textFieldStyle}
                 >
                   <MenuItem value="">
                     <em>Select your stream</em>
@@ -239,6 +290,7 @@ const Register: React.FC = () => {
                   onChange={(e) => setValue('year', e.target.value)}
                   error={!!errors.year}
                   helperText={errors.year?.message}
+                  sx={textFieldStyle}
                 >
                   <MenuItem value="">
                     <em>Select your year</em>
@@ -263,13 +315,13 @@ const Register: React.FC = () => {
             </Button>
             
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="body2">
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
                 Already have an account?{' '}
                 <Link
                   component="button"
                   variant="body2"
                   onClick={() => navigate('/login')}
-                  sx={{ cursor: 'pointer' }}
+                  sx={{ cursor: 'pointer', color: '#8b5cf6' }}
                 >
                   Sign in here
                 </Link>
@@ -279,6 +331,7 @@ const Register: React.FC = () => {
         </Paper>
       </Box>
     </Container>
+    </VideoBackground>
   );
 };
 

@@ -13,8 +13,6 @@ import {
   MenuItem,
   Chip,
   Stack,
-  Paper,
-  Divider,
   Alert,
   CircularProgress,
   IconButton,
@@ -25,7 +23,6 @@ import {
 } from '@mui/material';
 import {
   CloudUpload as UploadIcon,
-  Add as AddIcon,
   Delete as DeleteIcon,
   Link as LinkIcon,
   InsertDriveFile as FileIcon
@@ -35,8 +32,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import VideoBackground from '../common/VideoBackground';
 import api from '../../utils/api';
-import { ResourceFormData, RESOURCE_TYPES, CATEGORIES, SEMESTERS } from '../../types';
+import { RESOURCE_TYPES, CATEGORIES, SEMESTERS } from '../../types';
 
 // Local interface for the form that matches Yup schema exactly
 interface FormData {
@@ -90,6 +88,19 @@ const UploadResource: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [tags, setTags] = useState<string[]>([]);
+  
+  // Common card styling for transparent effect
+  const cardStyle = {
+    background: 'rgba(255, 255, 255, 0.05)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: '16px',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      background: 'rgba(255, 255, 255, 0.08)',
+      transform: 'translateY(-2px)',
+      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+    },
+  };
   const [newTag, setNewTag] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [externalLinks, setExternalLinks] = useState<Array<{url: string, title: string}>>([]);
@@ -286,15 +297,35 @@ const UploadResource: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Upload Educational Resource
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Share your knowledge with fellow engineering students
-        </Typography>
-      </Box>
+    <VideoBackground overlay={false}>
+      <Box sx={{ 
+        minHeight: '100vh',
+        pt: { xs: 11, sm: 12 },
+        pb: { xs: 2, sm: 4 },
+        px: { xs: 1, sm: 2 },
+      }}>
+        <Container maxWidth="md">
+          <Box sx={{ 
+            background: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '20px',
+            p: 3,
+            mb: 4,
+            textAlign: 'center'
+          }}>
+            <Typography variant="h4" gutterBottom sx={{
+              fontWeight: 700,
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              color: 'transparent',
+            }}>
+              Upload Educational Resource
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+              Share your knowledge with fellow engineering students
+            </Typography>
+          </Box>
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -320,7 +351,7 @@ const UploadResource: React.FC = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {/* Basic Information */}
           <Box>
-            <Card>
+            <Card sx={cardStyle}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Basic Information
@@ -355,7 +386,7 @@ const UploadResource: React.FC = () => {
 
           {/* Classification */}
           <Box>
-            <Card>
+            <Card sx={cardStyle}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Classification
@@ -468,7 +499,7 @@ const UploadResource: React.FC = () => {
 
           {/* Tags */}
           <Box>
-            <Card>
+            <Card sx={cardStyle}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Tags
@@ -511,7 +542,7 @@ const UploadResource: React.FC = () => {
 
           {/* Content */}
           <Box>
-            <Card>
+            <Card sx={cardStyle}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Content (Optional)
@@ -532,7 +563,7 @@ const UploadResource: React.FC = () => {
 
           {/* File Upload */}
           <Box>
-            <Card>
+            <Card sx={cardStyle}>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Files
@@ -585,9 +616,13 @@ const UploadResource: React.FC = () => {
 
           {/* External Links */}
           <Box>
-            <Card>
+            <Card sx={cardStyle}>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" gutterBottom sx={{ 
+                  color: 'white', 
+                  fontWeight: 600,
+                  mb: 3,
+                }}>
                   External Links (Optional)
                 </Typography>
                 <Box sx={{ mb: 2 }}>
@@ -600,6 +635,31 @@ const UploadResource: React.FC = () => {
                         value={newLink.url}
                         onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
                         placeholder="https://example.com"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            borderRadius: '12px',
+                            color: 'white',
+                            '& fieldset': {
+                              borderColor: 'rgba(255, 255, 255, 0.2)',
+                            },
+                            '&:hover fieldset': {
+                              borderColor: 'rgba(139, 92, 246, 0.4)',
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: 'rgba(139, 92, 246, 0.6)',
+                            },
+                          },
+                          '& .MuiInputLabel-root': {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            '&.Mui-focused': {
+                              color: 'rgba(139, 92, 246, 0.8)',
+                            },
+                          },
+                          '& .MuiInputBase-input::placeholder': {
+                            color: 'rgba(255, 255, 255, 0.5)',
+                          },
+                        }}
                       />
                     </Box>
                     <Box>
@@ -610,6 +670,31 @@ const UploadResource: React.FC = () => {
                         value={newLink.title}
                         onChange={(e) => setNewLink({ ...newLink, title: e.target.value })}
                         placeholder="Link description"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            borderRadius: '12px',
+                            color: 'white',
+                            '& fieldset': {
+                              borderColor: 'rgba(255, 255, 255, 0.2)',
+                            },
+                            '&:hover fieldset': {
+                              borderColor: 'rgba(139, 92, 246, 0.4)',
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: 'rgba(139, 92, 246, 0.6)',
+                            },
+                          },
+                          '& .MuiInputLabel-root': {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            '&.Mui-focused': {
+                              color: 'rgba(139, 92, 246, 0.8)',
+                            },
+                          },
+                          '& .MuiInputBase-input::placeholder': {
+                            color: 'rgba(255, 255, 255, 0.5)',
+                          },
+                        }}
                       />
                     </Box>
                     <Box>
@@ -618,6 +703,22 @@ const UploadResource: React.FC = () => {
                         onClick={handleAddLink}
                         disabled={!newLink.url.trim() || !newLink.title.trim()}
                         fullWidth
+                        sx={{
+                          color: 'white',
+                          borderColor: 'rgba(255, 255, 255, 0.3)',
+                          borderRadius: '12px',
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          '&:hover': {
+                            borderColor: 'rgba(139, 92, 246, 0.6)',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            color: '#8b5cf6',
+                          },
+                          '&:disabled': {
+                            color: 'rgba(255, 255, 255, 0.3)',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                          }
+                        }}
                       >
                         Add
                       </Button>
@@ -627,14 +728,37 @@ const UploadResource: React.FC = () => {
                 {externalLinks.length > 0 && (
                   <List>
                     {externalLinks.map((link, index) => (
-                      <ListItem key={index}>
-                        <LinkIcon sx={{ mr: 2 }} />
+                      <ListItem key={index} sx={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        borderRadius: '12px',
+                        mb: 1,
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                      }}>
+                        <LinkIcon sx={{ mr: 2, color: 'rgba(139, 92, 246, 0.8)' }} />
                         <ListItemText
                           primary={link.title}
                           secondary={link.url}
+                          sx={{
+                            '& .MuiListItemText-primary': {
+                              color: 'white',
+                              fontWeight: 600,
+                            },
+                            '& .MuiListItemText-secondary': {
+                              color: 'rgba(255, 255, 255, 0.7)',
+                            },
+                          }}
                         />
                         <ListItemSecondaryAction>
-                          <IconButton onClick={() => handleRemoveLink(index)}>
+                          <IconButton 
+                            onClick={() => handleRemoveLink(index)}
+                            sx={{
+                              color: 'rgba(255, 255, 255, 0.7)',
+                              '&:hover': {
+                                color: '#ef4444',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                              }
+                            }}
+                          >
                             <DeleteIcon />
                           </IconButton>
                         </ListItemSecondaryAction>
@@ -668,7 +792,9 @@ const UploadResource: React.FC = () => {
           </Box>
         </Box>
       </form>
-    </Container>
+        </Container>
+      </Box>
+    </VideoBackground>
   );
 };
 

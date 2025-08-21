@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Typography,
   Box,
-  
   Card,
   CardContent,
   CardActions,
@@ -18,16 +17,12 @@ import {
   Stack,
   Pagination,
   IconButton,
-  Badge,
   CircularProgress,
   Alert,
-  Paper,
-  Divider,
   InputAdornment
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  FilterList as FilterIcon,
   BookmarkBorder as BookmarkIcon,
   Bookmark as BookmarkFilledIcon,
   ThumbUp as ThumbUpIcon,
@@ -41,6 +36,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import VideoBackground from '../common/VideoBackground';
 import api from '../../utils/api';
 import { Resource, STREAMS, RESOURCE_TYPES } from '../../types';
 
@@ -74,7 +70,7 @@ const Resources: React.FC = () => {
     sortOrder: 'desc'
   });
 
-  const fetchResources = async () => {
+  const fetchResources = useCallback(async () => {
     try {
       setLoading(true);
       setError(''); // Clear any previous errors
@@ -115,11 +111,11 @@ const Resources: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, filters, user]);
 
   useEffect(() => {
     fetchResources();
-  }, [page, filters, user]);
+  }, [fetchResources]);
 
   const handleFilterChange = (key: keyof ResourceFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -207,10 +203,30 @@ const Resources: React.FC = () => {
     const userVote = votedResources.get(resource._id);
 
     return (
-      <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Card sx={{ 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column',
+        background: 'rgba(255, 255, 255, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.15)',
+        borderRadius: '16px',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        '&:hover': {
+          transform: 'translateY(-8px) scale(1.02)',
+          background: 'rgba(255, 255, 255, 0.15)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(139, 92, 246, 0.4)',
+          border: '1px solid rgba(139, 92, 246, 0.5)',
+        },
+      }}>
         <CardContent sx={{ flexGrow: 1 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1, mr: 1 }}>
+            <Typography variant="h6" component="div" sx={{ 
+              flexGrow: 1, 
+              mr: 1,
+              color: 'white',
+              textShadow: '1px 1px 2px rgba(0,0,0,0.8)',
+            }}>
               {resource.title}
             </Typography>
             <Stack direction="row">
@@ -322,37 +338,131 @@ const Resources: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Educational Resources
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Discover and share educational content from engineering students worldwide
-        </Typography>
-      </Box>
+    <VideoBackground overlay={false}>
+      <Container maxWidth="lg" sx={{ 
+        pt: { xs: 11, sm: 12 }, 
+        pb: { xs: 2, sm: 4 }, 
+        px: { xs: 1, sm: 2, md: 3 } 
+      }}>
+        {/* Header */}
+        <Box sx={{ mb: { xs: 4, sm: 6 }, textAlign: 'center', px: { xs: 1, sm: 0 } }}>
+          <Typography
+            variant="h6"
+            sx={{
+              color: '#8b5cf6',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: { xs: 1, sm: 2 },
+              mb: { xs: 1, sm: 2 },
+              fontSize: { xs: '0.9rem', sm: '1.25rem' }
+            }}
+          >
+            Learning Hub
+          </Typography>
+          <Typography 
+            variant="h2" 
+            sx={{ 
+              fontSize: { xs: '1.8rem', sm: '2.5rem', md: '3rem' },
+              fontWeight: 800,
+              mb: { xs: 2, sm: 3 },
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              lineHeight: 1.2
+            }}
+          >
+            Educational Resources
+          </Typography>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              color: 'rgba(255, 255, 255, 0.8)',
+              maxWidth: '600px',
+              mx: 'auto',
+              fontSize: { xs: '1rem', sm: '1.25rem' },
+              lineHeight: 1.5,
+              px: { xs: 1, sm: 0 }
+            }}
+          >
+            Discover and share educational content from engineering students worldwide
+          </Typography>
+        </Box>
 
       {/* Search and Filters */}
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Box sx={{ 
+        p: { xs: 2, sm: 3, md: 4 }, 
+        mb: { xs: 4, sm: 6 },
+        mx: { xs: 0, sm: 0 },
+        background: 'rgba(255, 255, 255, 0.05)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRadius: { xs: '16px', sm: '24px' },
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          background: 'rgba(255, 255, 255, 0.08)',
+          transform: { xs: 'none', sm: 'translateY(-2px)' },
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+        },
+      }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3 } }}>
           <Box>
             <TextField
               fullWidth
               placeholder="Search resources..."
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: { xs: '12px', sm: '16px' },
+                  height: { xs: '48px', sm: '56px' },
+                  fontSize: { xs: '1rem', sm: '1.1rem' },
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(139, 92, 246, 0.4)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'rgba(139, 92, 246, 0.6)',
+                    boxShadow: '0 0 0 3px rgba(139, 92, 246, 0.1)',
+                  },
+                },
+                '& .MuiInputBase-input::placeholder': {
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  fontSize: { xs: '0.9rem', sm: '1rem' }
+                },
+              }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon />
+                    <SearchIcon sx={{ color: 'rgba(255, 255, 255, 0.6)' }} />
+                  </InputAdornment>
+                ),
+                endAdornment: filters.search && (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => handleFilterChange('search', '')}
+                      sx={{ color: 'rgba(255, 255, 255, 0.6)' }}
+                    >
+                      <ClearIcon />
+                    </IconButton>
                   </InputAdornment>
                 ),
               }}
             />
           </Box>
           
-          <Box>
+          <Box sx={{ 
+            display: 'grid',
+            gridTemplateColumns: { 
+              xs: '1fr', 
+              sm: 'repeat(2, 1fr)', 
+              md: 'repeat(4, 1fr)' 
+            },
+            gap: { xs: 2, sm: 3 }
+          }}>
             <FormControl fullWidth>
               <InputLabel>Type</InputLabel>
               <Select
@@ -368,9 +478,7 @@ const Resources: React.FC = () => {
                 ))}
               </Select>
             </FormControl>
-          </Box>
 
-          <Box>
             <FormControl fullWidth>
               <InputLabel>Stream</InputLabel>
               <Select
@@ -386,9 +494,7 @@ const Resources: React.FC = () => {
                 ))}
               </Select>
             </FormControl>
-          </Box>
 
-          <Box>
             <FormControl fullWidth>
               <InputLabel>Difficulty</InputLabel>
               <Select
@@ -402,9 +508,7 @@ const Resources: React.FC = () => {
                 <MenuItem value="Advanced">Advanced</MenuItem>
               </Select>
             </FormControl>
-          </Box>
 
-          <Box>
             <FormControl fullWidth>
               <InputLabel>Sort By</InputLabel>
               <Select
@@ -422,19 +526,34 @@ const Resources: React.FC = () => {
           </Box>
         </Box>
 
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
+        <Box sx={{ 
+          mt: { xs: 2, sm: 3 }, 
+          display: 'flex', 
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between', 
+          alignItems: { xs: 'stretch', sm: 'center' },
+          gap: { xs: 1, sm: 0 }
+        }}>
+          <Typography variant="body2" color="text.secondary" sx={{ 
+            textAlign: { xs: 'center', sm: 'left' },
+            fontSize: { xs: '0.8rem', sm: '0.875rem' }
+          }}>
             {total} resources found
           </Typography>
           <Button
             startIcon={<ClearIcon />}
             onClick={clearFilters}
             size="small"
+            sx={{ 
+              fontSize: { xs: '0.8rem', sm: '0.875rem' },
+              alignSelf: { xs: 'center', sm: 'auto' },
+              maxWidth: { xs: '200px', sm: 'none' }
+            }}
           >
             Clear Filters
           </Button>
         </Box>
-      </Paper>
+      </Box>
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -485,7 +604,8 @@ const Resources: React.FC = () => {
           </Button>
         </Box>
       )}
-    </Container>
+      </Container>
+    </VideoBackground>
   );
 };
 

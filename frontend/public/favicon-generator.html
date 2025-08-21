@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Favicon Generator</title>
+</head>
+<body>
+    <h2>Edu_Cate Favicon Generator</h2>
+    <canvas id="canvas" width="32" height="32"></canvas>
+    <canvas id="canvas192" width="192" height="192"></canvas>
+    <canvas id="canvas512" width="512" height="512"></canvas>
+    
+    <div>
+        <p>Right-click and "Save Image As" to download:</p>
+        <p>1. First canvas: favicon (32x32)</p>
+        <p>2. Second canvas: logo192 (192x192)</p>
+        <p>3. Third canvas: logo512 (512x512)</p>
+    </div>
+    
+    <script>
+        function drawIcon(canvas) {
+            const ctx = canvas.getContext('2d');
+            const size = canvas.width;
+            const scale = size / 32;
+            
+            ctx.scale(scale, scale);
+            
+            // Create gradient
+            const gradient = ctx.createLinearGradient(0, 0, 32, 32);
+            gradient.addColorStop(0, '#3b82f6');
+            gradient.addColorStop(1, '#1d4ed8');
+            
+            // Background circle
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(16, 16, 15, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Border
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            
+            // Graduation cap
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath();
+            ctx.moveTo(6, 14);
+            ctx.lineTo(16, 10);
+            ctx.lineTo(26, 14);
+            ctx.lineTo(16, 18);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Cap sides
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(25, 14);
+            ctx.lineTo(25, 20);
+            ctx.quadraticCurveTo(25, 22, 16, 22);
+            ctx.quadraticCurveTo(7, 22, 7, 20);
+            ctx.lineTo(7, 14);
+            ctx.stroke();
+            
+            // Tassel
+            ctx.fillStyle = '#fbbf24';
+            ctx.beginPath();
+            ctx.arc(24, 14, 1, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(24, 15);
+            ctx.lineTo(24, 18);
+            ctx.stroke();
+            
+            // Book
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.fillRect(14, 20, 4, 3);
+            
+            // Letter 'E'
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.font = 'bold 8px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('E', 16, 19);
+        }
+        
+        // Draw on all canvases
+        drawIcon(document.getElementById('canvas'));
+        drawIcon(document.getElementById('canvas192'));
+        drawIcon(document.getElementById('canvas512'));
+    </script>
+</body>
+</html>

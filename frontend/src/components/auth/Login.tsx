@@ -15,6 +15,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import VideoBackground from '../common/VideoBackground';
 import { LoginData } from '../../types';
 
 const schema = yup.object({
@@ -55,29 +56,58 @@ const Login: React.FC = () => {
   };
 
   return (
-    <Container component="main" maxWidth="sm">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper
-          elevation={3}
+    <VideoBackground overlay={false}>
+      <Container component="main" maxWidth="sm">
+        <Box
           sx={{
-            padding: 4,
+            marginTop: 8,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            width: '100%',
+            minHeight: '100vh',
+            pt: 12,
           }}
         >
-          <Typography component="h1" variant="h4" gutterBottom>
+          <Paper
+            elevation={0}
+            sx={{
+              padding: 4,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              width: '100%',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '24px',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                background: 'rgba(255, 255, 255, 0.08)',
+                transform: 'translateY(-2px)',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+              },
+            }}
+          >
+          <Typography 
+            component="h1" 
+            variant="h4" 
+            gutterBottom
+            sx={{ 
+              color: 'white',
+              fontWeight: 700,
+              textShadow: '1px 1px 2px rgba(0,0,0,0.8)' 
+            }}
+          >
             Welcome Back
           </Typography>
-          <Typography variant="body2" color="textSecondary" align="center" sx={{ mb: 3 }}>
+          <Typography 
+            variant="body2" 
+            align="center" 
+            sx={{ 
+              mb: 3,
+              color: 'rgba(255, 255, 255, 0.8)',
+              textShadow: '1px 1px 2px rgba(0,0,0,0.8)' 
+            }}
+          >
             Sign in to access your engineering resources
           </Typography>
 
@@ -100,6 +130,28 @@ const Login: React.FC = () => {
               autoFocus
               error={!!errors.email}
               helperText={errors.email?.message}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(139, 92, 246, 0.4)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'rgba(139, 92, 246, 0.6)',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                },
+                '& .MuiFormHelperText-root': {
+                  color: 'rgba(255, 255, 255, 0.6)',
+                },
+              }}
             />
             <TextField
               {...register('password')}
@@ -113,6 +165,28 @@ const Login: React.FC = () => {
               autoComplete="current-password"
               error={!!errors.password}
               helperText={errors.password?.message}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '12px',
+                  color: 'white',
+                  '& fieldset': {
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'rgba(139, 92, 246, 0.4)',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'rgba(139, 92, 246, 0.6)',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: 'rgba(255, 255, 255, 0.7)',
+                },
+                '& .MuiFormHelperText-root': {
+                  color: 'rgba(255, 255, 255, 0.6)',
+                },
+              }}
             />
             <Button
               type="submit"
@@ -125,13 +199,13 @@ const Login: React.FC = () => {
             </Button>
             
             <Box sx={{ textAlign: 'center' }}>
-              <Typography variant="body2">
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
                 Don't have an account?{' '}
                 <Link
                   component="button"
                   variant="body2"
                   onClick={() => navigate('/register')}
-                  sx={{ cursor: 'pointer' }}
+                  sx={{ cursor: 'pointer', color: '#8b5cf6' }}
                 >
                   Sign up here
                 </Link>
@@ -141,6 +215,7 @@ const Login: React.FC = () => {
         </Paper>
       </Box>
     </Container>
+    </VideoBackground>
   );
 };
 

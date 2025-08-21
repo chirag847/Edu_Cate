@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Favicon</title>
+</head>
+<body>
+    <canvas id="canvas" width="32" height="32" style="display: none;"></canvas>
+    <canvas id="display" width="256" height="256" style="border: 1px solid #ccc;"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const displayCanvas = document.getElementById('display');
+        const displayCtx = displayCanvas.getContext('2d');
+        
+        // Create gradient
+        const gradient = ctx.createLinearGradient(0, 0, 32, 32);
+        gradient.addColorStop(0, '#3b82f6');
+        gradient.addColorStop(1, '#1d4ed8');
+        
+        // Background circle
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(16, 16, 15, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Stroke
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // Graduation cap
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.beginPath();
+        ctx.moveTo(6, 14);
+        ctx.lineTo(16, 10);
+        ctx.lineTo(26, 14);
+        ctx.lineTo(16, 18);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Cap sides
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(25, 14);
+        ctx.lineTo(25, 20);
+        ctx.quadraticCurveTo(25, 22, 16, 22);
+        ctx.quadraticCurveTo(7, 22, 7, 20);
+        ctx.lineTo(7, 14);
+        ctx.stroke();
+        
+        // Tassel
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(24, 14, 1, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(24, 15);
+        ctx.lineTo(24, 18);
+        ctx.stroke();
+        
+        // Book
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.fillRect(14, 20, 4, 3);
+        
+        // Display larger version
+        displayCtx.imageSmoothingEnabled = false;
+        displayCtx.drawImage(canvas, 0, 0, 32, 32, 0, 0, 256, 256);
+        
+        // Create download link
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'favicon-32x32.png';
+            a.textContent = 'Download 32x32 PNG';
+            a.style.display = 'block';
+            a.style.marginTop = '10px';
+            document.body.appendChild(a);
+        });
+        
+        // Create 192x192 version
+        const canvas192 = document.createElement('canvas');
+        canvas192.width = 192;
+        canvas192.height = 192;
+        const ctx192 = canvas192.getContext('2d');
+        ctx192.imageSmoothingEnabled = false;
+        ctx192.drawImage(canvas, 0, 0, 32, 32, 0, 0, 192, 192);
+        
+        canvas192.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'logo192.png';
+            a.textContent = 'Download 192x192 PNG';
+            a.style.display = 'block';
+            a.style.marginTop = '10px';
+            document.body.appendChild(a);
+        });
+        
+        // Create 512x512 version
+        const canvas512 = document.createElement('canvas');
+        canvas512.width = 512;
+        canvas512.height = 512;
+        const ctx512 = canvas512.getContext('2d');
+        ctx512.imageSmoothingEnabled = false;
+        ctx512.drawImage(canvas, 0, 0, 32, 32, 0, 0, 512, 512);
+        
+        canvas512.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'logo512.png';
+            a.textContent = 'Download 512x512 PNG';
+            a.style.display = 'block';
+            a.style.marginTop = '10px';
+            document.body.appendChild(a);
+        });
+    </script>
+</body>
+</html>
